@@ -26,25 +26,6 @@ export function LibraryPage() {
           ))}
         </div>
       </PageSection>
-      
-      {continueReading.length > 0 ? (
-        <section className="rounded-[32px] border border-black/5 bg-white/80 p-6 shadow-panel">
-          <div className="mb-5">
-            <p className="text-sm uppercase tracking-[0.2em] text-ink-500">Continue reading</p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {continueReading.map((novel) => (
-              <div key={novel.id} className="rounded-[24px] border border-black/5 bg-ink-50/70 p-5">
-                <div className="mb-3">
-                  <p className="font-display text-2xl text-ink-900">{novel.title}</p>
-                  <p className="text-sm text-ink-500">{novel.author}</p>
-                </div>
-                <ProgressSummary progress={progressMap[novel.id]} />
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
     </div>
   );
 }

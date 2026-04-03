@@ -19,7 +19,6 @@ export function NovelDetailPage() {
   return (
     <div className="space-y-10">
       <PageSection
-        eyebrow={detail.novel.status}
         title={detail.novel.title}
         description={detail.novel.description}
         action={
