@@ -15,6 +15,7 @@ type AppAuthContextValue = {
   user: AppUser | null;
   isAdmin: boolean;
   isLoading: boolean;
+  error: string | null;
   refreshUser: () => Promise<void>;
 };
 
@@ -24,6 +25,7 @@ export function AppAuthProvider({ children }: PropsWithChildren) {
   const { getToken, isLoaded, isSignedIn, userId } = useAuth();
   const [user, setUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setAuthTokenGetter(isSignedIn ? async () => getToken() : async () => null);
@@ -40,23 +42,29 @@ export function AppAuthProvider({ children }: PropsWithChildren) {
 
     if (!isSignedIn) {
       setUser(null);
+      setError(null);
       setIsLoading(false);
       return;
     }
 
     let cancelled = false;
     setIsLoading(true);
+    setError(null);
 
     getCurrentUser()
       .then((currentUser) => {
         if (!cancelled) {
           setUser(currentUser);
+          setError(null);
           setIsLoading(false);
         }
       })
-      .catch(() => {
+      .catch((loadError) => {
         if (!cancelled) {
           setUser(null);
+          setError(
+            loadError instanceof Error ? loadError.message : "Unable to load your account.",
+          );
           setIsLoading(false);
         }
       });
@@ -71,17 +79,20 @@ export function AppAuthProvider({ children }: PropsWithChildren) {
       user,
       isAdmin: user?.role === "admin",
       isLoading: !isLoaded || isLoading,
+      error,
       refreshUser: async () => {
         if (!isSignedIn) {
           setUser(null);
+          setError(null);
           return;
         }
 
         const currentUser = await getCurrentUser();
         setUser(currentUser);
+        setError(null);
       },
     }),
-    [isLoaded, isLoading, isSignedIn, user],
+    [error, isLoaded, isLoading, isSignedIn, user],
   );
 
   return <AppAuthContext.Provider value={value}>{children}</AppAuthContext.Provider>;
