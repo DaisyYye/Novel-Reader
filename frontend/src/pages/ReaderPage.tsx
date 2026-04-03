@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ReaderControls } from "../components/reader/ReaderControls";
-import { formatRelativeDate } from "../lib/formatters";
 import { useReaderData } from "../hooks/useReaderData";
 
 function getThemeTokens(theme: "day" | "night" | "sepia") {
@@ -41,6 +40,7 @@ function getFontFamily(fontFamily: "literary" | "serif" | "sans") {
 export function ReaderPage() {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showMobileControls, setShowMobileControls] = useState(false);
+  const restoredChapterIdRef = useRef<string | null>(null);
   const { novelId = "", chapterId = "" } = useParams();
   const {
     detail,
@@ -68,6 +68,11 @@ export function ReaderPage() {
       return;
     }
 
+    if (restoredChapterIdRef.current === chapter.id) {
+      return;
+    }
+
+    restoredChapterIdRef.current = chapter.id;
     const initialScroll = progress?.chapterId === chapter.id ? progress.scrollTop : 0;
     window.requestAnimationFrame(() => window.scrollTo({ top: initialScroll, behavior: "auto" }));
   }, [chapter, progress?.chapterId, progress?.scrollTop]);
@@ -185,12 +190,6 @@ export function ReaderPage() {
                   {detail.novel.author}
                 </p>
                 <h2 className="font-display text-4xl leading-tight sm:text-5xl">{chapter.title}</h2>
-                {progress?.chapterId === chapter.id ? (
-                  <p className="text-sm" style={{ color: themeTokens.muted }}>
-                    Restored from {Math.round(progress.scrollTop)} px, last read{" "}
-                    {formatRelativeDate(progress.updatedAt)}
-                  </p>
-                ) : null}
               </header>
 
               <div>
