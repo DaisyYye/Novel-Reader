@@ -56,30 +56,3 @@ python scraper.py \
 
 Use this only for content you are allowed to access and copy. Do not use it to bypass paywalls, logins, DRM, or site protections.
 
-## Suggested GitHub steps
-
-```bash
-git init
-git add .
-git commit -m "Initial commit: configurable novel txt scraper"
-git branch -M main
-git remote add origin <your-repo-url>
-git push -u origin main
-```
-
-## Why this is better
-
-- You do not need to edit Python code for each new site.
-- Site-specific logic moves into JSON config.
-- Command-line overrides make testing faster.
-- Output mode is flexible.
-- The scraper is now closer to a reusable tool than a one-off script.
-
-## Good next upgrades
-
-- Add retry logic with exponential backoff
-- Add logging instead of print statements
-- Export to EPUB
-- Detect encodings more reliably
-- Add a Playwright mode for JS-rendered sites
-- Support multiple site configs in a `sites/` folder
