@@ -25,7 +25,7 @@ function getThemeTokens(theme: "day" | "night" | "sepia") {
   }
 
   return {
-    bg: "#f8f5ef",
+    bg: "#f7f7f7",
     fg: "#221d19",
     muted: "#6f6250",
     panel: "bg-white/72 border-black/10",
