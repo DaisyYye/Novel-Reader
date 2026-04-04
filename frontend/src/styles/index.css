@@ -209,7 +209,9 @@ body {
   }
 
   .library-search-input {
-    @apply w-full rounded-full border text-[1.02rem] text-ink-900 outline-none transition;
+    @apply w-full rounded-full border text-ink-900 outline-none transition;
+    font-size: var(--text-base);
+    line-height: var(--line-copy);
     min-height: 3rem;
     border-color: #dccfb8;
     background-color: #fbf8f1;
@@ -221,18 +223,24 @@ body {
   }
 
   .library-inline-control {
-    @apply flex items-center gap-3 text-sm text-ink-700;
+    @apply flex items-center gap-3 text-ink-700;
+    font-size: var(--text-base);
+    line-height: var(--line-copy);
   }
 
   .library-inline-control label {
-    @apply text-[1rem] font-medium text-[#4d453b];
+    @apply font-medium text-[#4d453b];
+    font-size: var(--text-base);
+    line-height: 1.2;
   }
 
   .library-select {
-    @apply min-w-[9.75rem] rounded-full px-4 text-[1rem] text-ink-900 outline-none transition;
+    @apply min-w-[9.75rem] rounded-full px-4 text-ink-900 outline-none transition;
     background-color: #fbf8f1;
     border: 1px solid #dccfb8;
     min-height: 3rem;
+    font-size: var(--text-base);
+    line-height: var(--line-copy);
   }
 
   .library-select:focus {
@@ -245,7 +253,10 @@ body {
   }
 
   .library-tab {
-    @apply border-b-2 pb-2 text-[1rem] font-semibold uppercase tracking-[0.02em] transition;
+    @apply border-b-2 pb-2 font-semibold uppercase transition;
+    font-size: var(--text-base);
+    line-height: 1.2;
+    letter-spacing: 0.02em;
   }
 
   .library-tab-active {
@@ -258,7 +269,10 @@ body {
   }
 
   .library-section-heading {
-    @apply text-[1.15rem] font-semibold uppercase tracking-[0.02em];
+    @apply font-semibold uppercase;
+    font-size: var(--text-lg);
+    line-height: 1.2;
+    letter-spacing: 0.02em;
     color: #2d2823;
   }
 
@@ -271,17 +285,8 @@ body {
   }
 
   .library-book-card-link {
-    display: grid;
-    grid-template-columns: 5.5rem minmax(0, 1fr);
-    gap: 1rem;
-    min-height: 9rem;
-  }
-
-  .library-book-cover {
-    height: 100%;
+    display: block;
     min-height: 8.5rem;
-    border-radius: 0.9rem;
-    background: linear-gradient(135deg, #e9decb, #f7f2e7);
   }
 
   .library-book-body {
@@ -300,15 +305,18 @@ body {
 
   .library-book-title {
     font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: 2rem;
-    line-height: 0.95;
+    font-size: clamp(1.9rem, 1.45rem + 0.7vw, 2.45rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: 0.01em;
     color: #221d19;
   }
 
   .library-book-author {
     margin-top: 0.2rem;
-    font-size: 0.95rem;
+    font-size: var(--text-base);
     font-weight: 600;
+    line-height: 1.35;
     color: #5f5447;
   }
 
@@ -317,8 +325,8 @@ body {
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
-    font-size: 0.95rem;
-    line-height: 1.45;
+    font-size: var(--text-base);
+    line-height: var(--line-copy);
     color: #494038;
   }
 
@@ -336,7 +344,8 @@ body {
     border-radius: 999px;
     background: #f1eadf;
     padding: 0.15rem 0.55rem;
-    font-size: 0.78rem;
+    font-size: var(--text-xs);
+    line-height: 1.2;
     color: #5f5447;
   }
 
@@ -349,7 +358,7 @@ body {
     padding: 0;
     border: 0;
     background: transparent;
-    font-size: 1.65rem;
+    font-size: 1.55rem;
     line-height: 1;
     color: #bf2e2e;
     transition: transform 160ms ease, color 160ms ease;
@@ -513,16 +522,7 @@ body {
     padding: 0.7rem 1rem;
   }
 
-  .library-book-card-link {
-    grid-template-columns: 4.5rem minmax(0, 1fr);
-    gap: 0.85rem;
-  }
-
-  .library-book-cover {
-    min-height: 7.5rem;
-  }
-
   .library-book-title {
-    font-size: 1.7rem;
+    font-size: 1.8rem;
   }
 }

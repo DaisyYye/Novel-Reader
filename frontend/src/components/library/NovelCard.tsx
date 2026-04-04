@@ -54,13 +54,6 @@ export function NovelCard({
   return (
     <div className="library-book-card">
       <Link to={`/novels/${novel.id}`} className="library-book-card-link">
-        <div
-          className="library-book-cover"
-          style={{
-            background: `linear-gradient(135deg, ${novel.coverColor}, rgba(255,255,255,0.88))`,
-          }}
-        />
-
         <div className="library-book-body">
           <div className="library-book-head">
             <div className="min-w-0">
