@@ -114,6 +114,60 @@ type BackendImportResponse = {
   imported_chapter_count: number;
 };
 
+function formatErrorDetail(detail: unknown): string | null {
+  if (typeof detail === "string" && detail.trim()) {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    const items = detail
+      .map((item) => {
+        if (!item || typeof item !== "object") {
+          return null;
+        }
+
+        const message =
+          "msg" in item && typeof item.msg === "string"
+            ? item.msg
+            : "message" in item && typeof item.message === "string"
+              ? item.message
+              : null;
+        const location =
+          "loc" in item && Array.isArray(item.loc)
+            ? item.loc
+                .filter(
+                  (part: unknown): part is string | number =>
+                    typeof part === "string" || typeof part === "number",
+                )
+                .join(".")
+            : null;
+
+        if (message && location) {
+          return `${location}: ${message}`;
+        }
+
+        return message;
+      })
+      .filter((value): value is string => Boolean(value));
+
+    return items.length > 0 ? items.join("; ") : null;
+  }
+
+  if (detail && typeof detail === "object") {
+    return JSON.stringify(detail);
+  }
+
+  return null;
+}
+
+function normalizeScrollPosition(scrollTop: number): number {
+  if (!Number.isFinite(scrollTop) || scrollTop < 0) {
+    return 0;
+  }
+
+  return Math.round(scrollTop);
+}
+
 async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const token = await getAuthToken();
   const headers = new Headers(init?.headers ?? {});
@@ -133,8 +187,8 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
 
     if (text) {
       try {
-        const payload = JSON.parse(text) as { detail?: string };
-        message = payload.detail ?? text;
+        const payload = JSON.parse(text) as { detail?: unknown };
+        message = formatErrorDetail(payload.detail) ?? text;
       } catch {
         message = text;
       }
@@ -355,7 +409,7 @@ function createApiReaderAppService(): ReaderAppService {
         body: JSON.stringify({
           chapter_id: progress.chapterId,
           chapter_number: progress.chapterIndex,
-          scroll_position: progress.scrollTop,
+          scroll_position: normalizeScrollPosition(progress.scrollTop),
           last_read_at: progress.updatedAt,
         }),
       });

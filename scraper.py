@@ -3,6 +3,7 @@ import base64
 import importlib.util
 import json
 import re
+import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -138,16 +139,52 @@ def request_with_retries(
     raise last_exc if last_exc else requests.RequestException(f"Failed to fetch {url}")
 
 
-def fetch_soup(session: requests.Session, url: str) -> BeautifulSoup:
-    response = request_with_retries(session, url)
-    response.encoding = response.encoding or response.apparent_encoding or "utf-8"
-    return BeautifulSoup(response.text, "html.parser")
+def apply_response_encoding(response: requests.Response) -> None:
+    content_head = response.content[:2048].lower()
+    if b"charset=utf-8" in content_head or b"charset=\"utf-8\"" in content_head:
+        response.encoding = "utf-8"
+        return
+    if b"charset=gbk" in content_head or b"charset=\"gbk\"" in content_head:
+        response.encoding = "gbk"
+        return
+    response.encoding = response.apparent_encoding or response.encoding or "utf-8"
 
 
-def fetch_text(session: requests.Session, url: str) -> str:
-    response = request_with_retries(session, url)
-    response.encoding = response.encoding or response.apparent_encoding or "utf-8"
-    return response.text
+def detect_encoding_from_bytes(content: bytes) -> str:
+    content_head = content[:2048].lower()
+    if b"charset=utf-8" in content_head or b"charset=\"utf-8\"" in content_head:
+        return "utf-8"
+    if b"charset=gbk" in content_head or b"charset=\"gbk\"" in content_head:
+        return "gbk"
+    return "utf-8"
+
+
+def fetch_text_with_curl(url: str) -> str:
+    result = subprocess.run(
+        ["curl.exe", "-L", "-A", DEFAULT_HEADERS["User-Agent"], url],
+        capture_output=True,
+        check=True,
+    )
+    return result.stdout.decode(detect_encoding_from_bytes(result.stdout), errors="ignore")
+
+
+def fetch_text(session: requests.Session, url: str, config: dict | None = None) -> str:
+    config = config or {}
+    use_curl = config.get("request_backend") == "curl"
+    if not use_curl:
+        try:
+            response = request_with_retries(session, url)
+            apply_response_encoding(response)
+            return response.text
+        except requests.RequestException:
+            if not config.get("curl_fallback"):
+                raise
+
+    return fetch_text_with_curl(url)
+
+
+def fetch_soup(session: requests.Session, url: str, config: dict | None = None) -> BeautifulSoup:
+    return BeautifulSoup(fetch_text(session, url, config), "html.parser")
 
 
 def create_session() -> requests.Session:
@@ -192,8 +229,8 @@ def decrypt_lenglengbb_html(html: str) -> str | None:
     return decrypted.decode("utf-8", errors="ignore")
 
 
-def build_soup(session: requests.Session, url: str) -> BeautifulSoup:
-    html = fetch_text(session, url)
+def build_soup(session: requests.Session, url: str, config: dict | None = None) -> BeautifulSoup:
+    html = fetch_text(session, url, config)
     soup = BeautifulSoup(html, "html.parser")
 
     encrypted_domains = {
@@ -229,6 +266,22 @@ def normalize_title(title: str) -> str:
     return title.strip()
 
 
+def clean_title_text(title: str, config: dict | None = None) -> str:
+    title = normalize_title(title)
+    config = config or {}
+    for rule in config.get("title_replacements", []):
+        pattern = rule.get("pattern")
+        if not pattern:
+            continue
+        replacement = rule.get("replacement", "")
+        flags = re.MULTILINE
+        if rule.get("ignorecase"):
+            flags |= re.IGNORECASE
+        title = re.sub(pattern, replacement, title, flags=flags)
+        title = normalize_title(title)
+    return title
+
+
 def extract_title_number(title: str) -> int | None:
     match = re.match(r"\s*(\d+)\b", title)
     if not match:
@@ -261,16 +314,58 @@ def normalize_block(text: str) -> str:
     return "\n".join(cleaned_lines).strip()
 
 
-def extract_paragraphs(node: BeautifulSoup, bad_phrases: list[str], min_line_length: int) -> list[str]:
+def extract_node_text(node: BeautifulSoup, config: dict | None = None) -> str:
+    config = config or {}
+    if config.get("content_preserve_html_breaks"):
+        html = node.decode_contents()
+        html = re.sub(
+            r"(?is)(?:<br\s*/?>|</br>)+",
+            lambda match: "\n" * max(1, len(re.findall(r"(?is)<br\s*/?>|</br>", match.group(0)))),
+            html,
+        )
+        text = BeautifulSoup(html, "html.parser").get_text("", strip=False)
+        return normalize_block(text)
+    return normalize_block(node.get_text("\n", strip=False))
+
+
+def apply_content_filters(text: str, config: dict) -> str:
+    line_exclude_patterns = config.get("content_line_exclude_patterns", [])
+    if line_exclude_patterns:
+        kept_lines = []
+        for line in text.split("\n"):
+            if any(re.search(pattern, line) for pattern in line_exclude_patterns):
+                continue
+            kept_lines.append(line)
+        text = "\n".join(kept_lines)
+
+    for rule in config.get("content_replacements", []):
+        pattern = rule.get("pattern")
+        if not pattern:
+            continue
+        replacement = rule.get("replacement", "")
+        flags = re.MULTILINE
+        if rule.get("dotall"):
+            flags |= re.DOTALL
+        if rule.get("ignorecase"):
+            flags |= re.IGNORECASE
+        text = re.sub(pattern, replacement, text, flags=flags)
+
+    return normalize_block(text)
+
+
+def extract_paragraphs(
+    node: BeautifulSoup,
+    bad_phrases: list[str],
+    min_line_length: int,
+    use_paragraph_tags: bool,
+) -> list[str]:
     paragraphs = []
-    blocks = node.find_all("p") or [node]
+    blocks = node.find_all("p") if use_paragraph_tags else []
+    if not blocks:
+        blocks = [node]
 
     for block in blocks:
-        for br in block.find_all("br"):
-            br.replace_with("\n")
-
-        raw_text = block.get_text("\n", strip=False)
-        text = normalize_block(raw_text)
+        text = extract_node_text(block, {"content_preserve_html_breaks": False})
         if not text:
             continue
 
@@ -299,6 +394,7 @@ def extract_text(soup: BeautifulSoup, config: dict) -> str:
     selectors = config.get("content_selectors", [])
     bad_phrases = config.get("bad_phrases", DEFAULT_BAD_PHRASES)
     min_line_length = config.get("min_line_length", 8)
+    use_paragraph_tags = config.get("content_use_paragraph_tags", True)
     paragraphs: list[str] = []
 
     for selector in selectors:
@@ -306,7 +402,7 @@ def extract_text(soup: BeautifulSoup, config: dict) -> str:
         if not node:
             continue
 
-        paragraphs = extract_paragraphs(node, bad_phrases, min_line_length)
+        paragraphs = extract_paragraphs(node, bad_phrases, min_line_length, use_paragraph_tags)
         if paragraphs:
             break
 
@@ -317,7 +413,111 @@ def extract_text(soup: BeautifulSoup, config: dict) -> str:
             seen.add(text)
             cleaned.append(text)
 
-    return "\n\n".join(cleaned)
+    return apply_content_filters("\n\n".join(cleaned), config)
+
+
+def split_single_page_chapters(soup: BeautifulSoup, config: dict, source_url: str) -> list[dict[str, object]]:
+    content_selector = config.get("single_page_content_selector")
+    split_pattern = config.get("single_page_split_pattern")
+    if not content_selector or not split_pattern:
+        return []
+
+    node = soup.select_one(content_selector)
+    if not node:
+        return []
+
+    full_text = apply_content_filters(extract_node_text(node, config), config)
+    if not full_text:
+        return []
+
+    matches = list(re.finditer(split_pattern, full_text, flags=re.MULTILINE))
+    if not matches:
+        return []
+
+    chapters: list[dict[str, object]] = []
+    for chapter_number, match in enumerate(matches, start=1):
+        title = clean_title_text(match.groupdict().get("title") or match.group(0), config)
+        end = matches[chapter_number].start() if chapter_number < len(matches) else len(full_text)
+        content = normalize_block(full_text[match.end():end])
+        content = apply_content_filters(content, config)
+        if not content:
+            continue
+        chapters.append(
+            {
+                "chapter_number": chapter_number,
+                "title": title,
+                "content": content,
+                "source_url": source_url,
+                "word_count": count_words(content),
+            }
+        )
+
+    return chapters
+
+
+def resplit_structured_chapters(
+    chapters: list[dict[str, object]],
+    config: dict,
+) -> list[dict[str, object]]:
+    split_pattern = config.get("post_chapter_split_pattern")
+    if not split_pattern or not chapters:
+        return chapters
+
+    heading_re = re.compile(split_pattern, flags=re.MULTILINE)
+    rebuilt: list[dict[str, object]] = []
+    current: dict[str, object] | None = None
+    current_lines: list[str] = []
+    preface_lines: list[str] = []
+
+    for page in chapters:
+        lines = str(page["content"]).split("\n")
+
+        for line in lines:
+            heading_match = heading_re.match(line.strip())
+            if heading_match:
+                if current is not None:
+                    current["content"] = normalize_block("\n".join(current_lines))
+                    rebuilt.append(current)
+                    current_lines = []
+
+                heading = clean_title_text(heading_match.group(0), config)
+                current = {
+                    "chapter_number": len(rebuilt) + 1,
+                    "title": heading,
+                    "content": "",
+                    "source_url": page.get("source_url"),
+                }
+                if preface_lines:
+                    current_lines.extend(preface_lines)
+                    preface_lines = []
+                continue
+
+            if current is None:
+                preface_lines.append(line)
+            else:
+                current_lines.append(line)
+
+    if current is not None:
+        current["content"] = normalize_block("\n".join(current_lines))
+        rebuilt.append(current)
+
+    if not rebuilt:
+        return chapters
+
+    cleaned_rebuilt: list[dict[str, object]] = []
+    for idx, chapter in enumerate(rebuilt, start=1):
+        content = apply_content_filters(str(chapter["content"]), config)
+        cleaned_rebuilt.append(
+            {
+                "chapter_number": idx,
+                "title": str(chapter["title"]),
+                "content": content,
+                "source_url": chapter.get("source_url"),
+                "word_count": count_words(content),
+            }
+        )
+
+    return cleaned_rebuilt
 
 
 def find_next_url(soup: BeautifulSoup, current_url: str, config: dict) -> str | None:
@@ -365,7 +565,7 @@ def collect_chapter_urls(session: requests.Session, config: dict, start_url_over
 
     while current_list_url and current_list_url not in seen_catalog_pages:
         seen_catalog_pages.add(current_list_url)
-        soup = fetch_soup(session, current_list_url)
+        soup = fetch_soup(session, current_list_url, config)
 
         for node in soup.select(chapter_link_selector):
             href = node.get("href")
@@ -391,10 +591,15 @@ def collect_chapter_urls(session: requests.Session, config: dict, start_url_over
                         break
                     current = getattr(current, "parent", None)
 
-            try:
-                sort_key = int(sort_value) if sort_value is not None else len(entries)
-            except ValueError:
-                sort_key = len(entries)
+            if sort_value is not None:
+                try:
+                    sort_key = int(sort_value)
+                except ValueError:
+                    sort_key = len(entries)
+            else:
+                sort_regex = config.get("chapter_link_sort_regex")
+                match = re.search(sort_regex, chapter_url) if sort_regex else None
+                sort_key = int(match.group(1)) if match else len(entries)
 
             entries.append((sort_key, chapter_url))
 
@@ -433,10 +638,10 @@ def scrape_chapter(
     try:
         while current_url and current_url not in seen_urls:
             seen_urls.add(current_url)
-            soup = build_soup(session, current_url)
+            soup = build_soup(session, current_url, config)
 
             if title == f"Chapter {chapter_num}":
-                title = normalize_title(extract_title(soup, config.get("title_selector"), title))
+                title = clean_title_text(extract_title(soup, config.get("title_selector"), title), config)
 
             chapter_text = extract_text(soup, config)
             if chapter_text:
@@ -591,6 +796,31 @@ def scrape(config: dict, args: argparse.Namespace) -> None:
     follow_next_chapters = config.get("follow_next_chapters", False)
     max_chapters = args.max_chapters or config.get("max_chapters")
 
+    if config.get("single_page_split_pattern"):
+        source_url = args.start_url or config["start_url"]
+        try:
+            soup = build_soup(session, source_url, config)
+        except requests.RequestException as exc:
+            print(f"Failed to load single-page source: {exc}")
+            session.close()
+            return
+
+        structured_chapters = split_single_page_chapters(soup, config, source_url)
+        session.close()
+
+        if not structured_chapters:
+            print("Could not split chapters from the single-page source.")
+            return
+
+        if max_chapters:
+            structured_chapters = structured_chapters[:max_chapters]
+
+        novel_payload = build_novel_payload(config, json_output_name, structured_chapters)
+        json_path, chapter_json_dir = save_structured_exports(json_output_dir, json_output_name, novel_payload)
+        print(f"Saved structured novel JSON to {json_path}")
+        print(f"Saved structured chapter JSON to {chapter_json_dir}")
+        return
+
     if follow_next_chapters:
         current_url = args.start_url or config["start_url"]
         if not max_chapters:
@@ -609,16 +839,29 @@ def scrape(config: dict, args: argparse.Namespace) -> None:
             seen_urls.add(current_url)
             print(f"Scraping page {len(seen_urls)}: {current_url}")
 
-            try:
-                soup = build_soup(session, current_url)
-            except requests.RequestException as exc:
-                print(f"Request failed while following chapters: {exc}")
-                session.close()
-                return
-
-            title = normalize_title(extract_title(soup, config.get("title_selector"), f"Chapter {saved_chapters + 1}"))
-            chapter_text = extract_text(soup, config)
             min_chapter_length = config.get("min_chapter_length", 100)
+            short_content_retries = max(0, config.get("short_content_retries", 0))
+            title = f"Chapter {saved_chapters + 1}"
+            chapter_text = ""
+
+            for attempt in range(short_content_retries + 1):
+                try:
+                    soup = build_soup(session, current_url, config)
+                except requests.RequestException as exc:
+                    print(f"Request failed while following chapters: {exc}")
+                    session.close()
+                    return
+
+                title = clean_title_text(
+                    extract_title(soup, config.get("title_selector"), f"Chapter {saved_chapters + 1}"),
+                    config,
+                )
+                chapter_text = extract_text(soup, config)
+                if len(chapter_text) >= min_chapter_length:
+                    break
+                if attempt < short_content_retries and delay > 0:
+                    time.sleep(delay)
+
             title_number = extract_title_number(title)
 
             if len(chapter_text) < min_chapter_length:
@@ -775,6 +1018,7 @@ def scrape(config: dict, args: argparse.Namespace) -> None:
         }
         for chapter_num in sorted(scraped_chapters)
     ]
+    structured_chapters = resplit_structured_chapters(structured_chapters, config)
     novel_payload = build_novel_payload(config, json_output_name, structured_chapters)
     json_path, chapter_json_dir = save_structured_exports(json_output_dir, json_output_name, novel_payload)
 

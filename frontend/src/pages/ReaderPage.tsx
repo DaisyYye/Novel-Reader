@@ -38,6 +38,19 @@ function getFontFamily(fontFamily: "literary" | "serif" | "sans") {
   return "\"Cormorant Garamond\", Georgia, serif";
 }
 
+function splitReaderParagraphs(content: string) {
+  const normalized = content.replace(/\r\n?/g, "\n").trim();
+  if (!normalized) {
+    return [];
+  }
+
+  const paragraphs = normalized.includes("\n\n")
+    ? normalized.split(/\n{2,}/)
+    : normalized.split(/\n+/);
+
+  return paragraphs.map((paragraph) => paragraph.trim()).filter(Boolean);
+}
+
 export function ReaderPage() {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showMobileControls, setShowMobileControls] = useState(false);
@@ -241,7 +254,7 @@ export function ReaderPage() {
               </header>
 
               <div>
-                {chapter.content.split("\n\n").map((paragraph, index) => (
+                {splitReaderParagraphs(chapter.content).map((paragraph, index) => (
                   <p key={`${chapter.id}-${index}`}>{paragraph}</p>
                 ))}
               </div>
@@ -307,7 +320,7 @@ export function ReaderPage() {
           }}
           aria-label="Back to top"
         >
-          Top
+          ↑
         </button>
       ) : null}
     </div>

@@ -69,11 +69,14 @@ export function useReaderData(novelId: string, chapterId: string) {
 
   const persistProgress = useCallback(
     async (chapter: ChapterContent, scrollTop: number) => {
+      const normalizedScrollTop =
+        Number.isFinite(scrollTop) && scrollTop > 0 ? Math.round(scrollTop) : 0;
+
       const nextProgress = {
         novelId,
         chapterId: chapter.id,
         chapterIndex: chapter.index,
-        scrollTop,
+        scrollTop: normalizedScrollTop,
         updatedAt: new Date().toISOString(),
       };
 
