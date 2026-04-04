@@ -13,7 +13,7 @@ from backend.schemas.novels import (
     NovelUpdate,
 )
 from backend.services.utils import loads_tags
-from backend.services.utils import build_chapter_id
+from backend.services.utils import dumps_tags, build_chapter_id
 
 
 def serialize_novel_summary(novel: Novel) -> NovelSummary:
@@ -107,6 +107,9 @@ def update_novel_metadata_or_404(
     novel.title = payload.title.strip()
     novel.author = payload.author.strip() if payload.author else None
     novel.description = payload.description.strip() if payload.description else None
+    novel.tags_json = dumps_tags(
+        [tag.strip() for tag in payload.tags if tag.strip()]
+    )
     db.add(novel)
     db.commit()
     db.refresh(novel)

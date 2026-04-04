@@ -301,6 +301,7 @@ function createApiReaderAppService(): ReaderAppService {
             title: input.title,
             author: input.author || null,
             description: input.description || null,
+            tags: input.tags ?? [],
           },
         }),
       });

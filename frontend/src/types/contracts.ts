@@ -23,6 +23,7 @@ export type UpdateNovelInput = {
   title: string;
   author?: string;
   description?: string;
+  tags?: string[];
 };
 
 export type ImportNovelInput = {

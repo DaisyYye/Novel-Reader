@@ -65,6 +65,7 @@ class NovelUpdate(APIModel):
     title: str
     author: str | None = None
     description: str | None = None
+    tags: list[str] = Field(default_factory=list)
 
 
 class NovelUpdateRequest(APIModel):
