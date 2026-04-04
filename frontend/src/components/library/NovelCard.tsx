@@ -4,11 +4,47 @@ import type { NovelSummary } from "../../types/domain";
 
 type NovelCardProps = {
   novel: NovelSummary;
+  isFavorite?: boolean;
+  onToggleFavorite?: (novelId: string) => void;
   onDelete?: (novel: NovelSummary) => void;
   isDeleting?: boolean;
 };
 
-export function NovelCard({ novel, onDelete, isDeleting = false }: NovelCardProps) {
+function FavoriteButton({
+  novelId,
+  isFavorite = false,
+  onToggleFavorite,
+}: {
+  novelId: string;
+  isFavorite?: boolean;
+  onToggleFavorite?: (novelId: string) => void;
+}) {
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onToggleFavorite?.(novelId);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="library-favorite-button"
+      aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+      aria-pressed={isFavorite}
+    >
+      {isFavorite ? "\u2665" : "\u2661"}
+    </button>
+  );
+}
+
+export function NovelCard({
+  novel,
+  isFavorite = false,
+  onToggleFavorite,
+  onDelete,
+  isDeleting = false,
+}: NovelCardProps) {
   const handleDeleteClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -16,25 +52,42 @@ export function NovelCard({ novel, onDelete, isDeleting = false }: NovelCardProp
   };
 
   return (
-    <div className="surface-card-compact flex h-full flex-col overflow-hidden transition hover:-translate-y-0.5 hover:border-black/10">
-      <Link to={`/novels/${novel.id}`} className="group flex h-full flex-col">
+    <div className="library-book-card">
+      <Link to={`/novels/${novel.id}`} className="library-book-card-link">
         <div
-          className="mb-4 h-36 rounded-[1rem]"
+          className="library-book-cover"
           style={{
-            background: `linear-gradient(135deg, ${novel.coverColor}, rgba(255,255,255,0.65))`,
+            background: `linear-gradient(135deg, ${novel.coverColor}, rgba(255,255,255,0.88))`,
           }}
         />
-        <div className="space-y-2.5">
-          <div className="space-y-1">
-            <h2 className="font-display text-[1.85rem] leading-[1.02] text-ink-900">{novel.title}</h2>
-            <p className="text-sm text-ink-500">{novel.author}</p>
+
+        <div className="library-book-body">
+          <div className="library-book-head">
+            <div className="min-w-0">
+              <h2 className="library-book-title">{novel.title}</h2>
+              <p className="library-book-author">{novel.author}</p>
+            </div>
+            <FavoriteButton
+              novelId={novel.id}
+              isFavorite={isFavorite}
+              onToggleFavorite={onToggleFavorite}
+            />
           </div>
-          <p className="line-clamp-3 text-sm leading-5 text-ink-600">{novel.description}</p>
+
+          <p className="library-book-description">{novel.description}</p>
+
+          <div className="library-book-tags">
+            {novel.tags.slice(0, 3).map((tag) => (
+              <span key={tag} className="library-book-tag">
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
       </Link>
 
       {onDelete ? (
-        <div className="mt-4 flex justify-end">
+        <div className="mt-3 flex justify-end">
           <button
             type="button"
             onClick={handleDeleteClick}

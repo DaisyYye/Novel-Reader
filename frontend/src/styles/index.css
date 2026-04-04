@@ -177,8 +177,186 @@ body {
     @apply grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4;
   }
 
+  .library-reference-grid {
+    @apply grid gap-4 xl:grid-cols-3;
+  }
+
   .dense-list {
     @apply divide-y divide-black/5;
+  }
+
+  .library-catalogue {
+    @apply space-y-4;
+  }
+
+  .library-toolbar {
+    @apply space-y-4 border-b pb-3;
+    border-color: rgba(218, 205, 181, 0.7);
+  }
+
+  .library-toolbar-row {
+    @apply grid items-center gap-3 xl:grid-cols-[minmax(0,1fr)_auto_auto];
+  }
+
+  .library-search {
+    @apply relative;
+  }
+
+  .library-search-icon {
+    @apply pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#8f836f];
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .library-search-input {
+    @apply w-full rounded-full border text-[1.02rem] text-ink-900 outline-none transition;
+    min-height: 3rem;
+    border-color: #dccfb8;
+    background-color: #fbf8f1;
+    padding: 0.75rem 1rem 0.75rem 2.9rem;
+  }
+
+  .library-search-input::placeholder {
+    color: #948777;
+  }
+
+  .library-inline-control {
+    @apply flex items-center gap-3 text-sm text-ink-700;
+  }
+
+  .library-inline-control label {
+    @apply text-[1rem] font-medium text-[#4d453b];
+  }
+
+  .library-select {
+    @apply min-w-[9.75rem] rounded-full px-4 text-[1rem] text-ink-900 outline-none transition;
+    background-color: #fbf8f1;
+    border: 1px solid #dccfb8;
+    min-height: 3rem;
+  }
+
+  .library-select:focus {
+    @apply border-ink-400;
+    box-shadow: 0 0 0 0.1875rem rgba(112, 98, 80, 0.08);
+  }
+
+  .library-tabs {
+    @apply flex flex-wrap items-center gap-7;
+  }
+
+  .library-tab {
+    @apply border-b-2 pb-2 text-[1rem] font-semibold uppercase tracking-[0.02em] transition;
+  }
+
+  .library-tab-active {
+    color: #c29b43;
+    border-bottom-color: #c29b43;
+  }
+
+  .library-tab-inactive {
+    @apply border-transparent text-[#2f2a25] hover:text-ink-900;
+  }
+
+  .library-section-heading {
+    @apply text-[1.15rem] font-semibold uppercase tracking-[0.02em];
+    color: #2d2823;
+  }
+
+  .library-book-card {
+    border: 1px solid #e0d5c2;
+    border-radius: 1.15rem;
+    background: rgba(255, 255, 255, 0.84);
+    box-shadow: 0 0.75rem 1.75rem rgba(90, 73, 45, 0.08);
+    padding: 0.85rem;
+  }
+
+  .library-book-card-link {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    gap: 1rem;
+    min-height: 9rem;
+  }
+
+  .library-book-cover {
+    height: 100%;
+    min-height: 8.5rem;
+    border-radius: 0.9rem;
+    background: linear-gradient(135deg, #e9decb, #f7f2e7);
+  }
+
+  .library-book-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    min-width: 0;
+  }
+
+  .library-book-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .library-book-title {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 2rem;
+    line-height: 0.95;
+    color: #221d19;
+  }
+
+  .library-book-author {
+    margin-top: 0.2rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #5f5447;
+  }
+
+  .library-book-description {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: #494038;
+  }
+
+  .library-book-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: auto;
+  }
+
+  .library-book-tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.5rem;
+    border-radius: 999px;
+    background: #f1eadf;
+    padding: 0.15rem 0.55rem;
+    font-size: 0.78rem;
+    color: #5f5447;
+  }
+
+  .library-favorite-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    min-height: 1.75rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 1.65rem;
+    line-height: 1;
+    color: #bf2e2e;
+    transition: transform 160ms ease, color 160ms ease;
+  }
+
+  .library-favorite-button:hover {
+    transform: scale(1.06);
   }
 }
 
@@ -333,5 +511,18 @@ body {
     border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
     border-radius: 999px;
     padding: 0.7rem 1rem;
+  }
+
+  .library-book-card-link {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 0.85rem;
+  }
+
+  .library-book-cover {
+    min-height: 7.5rem;
+  }
+
+  .library-book-title {
+    font-size: 1.7rem;
   }
 }
