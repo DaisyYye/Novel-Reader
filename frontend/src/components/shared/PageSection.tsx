@@ -15,20 +15,14 @@ export function PageSection({
   children,
 }: PageSectionProps) {
   return (
-    <section className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
+    <section className="section-shell">
+      <div className="section-head">
+        <div className="section-copy">
           {eyebrow ? (
-            <p className="text-sm font-medium uppercase tracking-[0.24em] text-ink-500">
-              {eyebrow}
-            </p>
+            <p className="section-eyebrow">{eyebrow}</p>
           ) : null}
-        <div className="space-y-2">
-            {title ? <h1 className="font-display text-5xl leading-none text-ink-900">{title}</h1> : null}
-            {description ? (
-              <p className="max-w-2xl text-base leading-7 text-ink-600">{description}</p>
-            ) : null}
-          </div>
+          {title ? <h1 className="section-title">{title}</h1> : null}
+          {description ? <p className="section-subtitle">{description}</p> : null}
         </div>
         {action}
       </div>

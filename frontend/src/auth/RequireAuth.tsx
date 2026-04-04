@@ -8,7 +8,7 @@ export function RequireAuth() {
   const { error, isLoading, user } = useAppAuth();
 
   if (!isLoaded || isLoading) {
-    return <div className="px-6 py-10 text-sm text-ink-500">Checking your session...</div>;
+    return <div className="px-4 py-6 text-sm text-ink-500">Checking your session...</div>;
   }
 
   if (!isSignedIn) {
@@ -17,7 +17,7 @@ export function RequireAuth() {
 
   if (!user) {
     return (
-      <div className="px-6 py-10 text-sm text-red-700">
+      <div className="px-4 py-6 text-sm text-red-700">
         Unable to load your account.
         {error ? ` ${error}` : ""}
       </div>

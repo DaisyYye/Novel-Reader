@@ -145,24 +145,24 @@ export function LibraryPage() {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       {isAdmin ? (
         <PageSection
           eyebrow="Admin"
           title="Manage the catalogue"
           description="Create a book shell or import a structured JSON file from scraper output."
         >
-          <div className="grid gap-6 lg:grid-cols-2">
-            <section className="rounded-[28px] border border-black/5 bg-white/85 p-6 shadow-panel">
-              <h2 className="font-display text-3xl text-ink-900">Create book</h2>
-              <div className="mt-5 space-y-3">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <section className="surface-card">
+              <h2 className="font-display text-[2.1rem] leading-none text-ink-900">Create book</h2>
+              <div className="mt-4 space-y-3">
                 <input
                   value={createForm.title}
                   onChange={(event) =>
                     setCreateForm((current) => ({ ...current, title: event.target.value }))
                   }
                   placeholder="Title"
-                  className="w-full rounded-[18px] border border-black/10 bg-white px-4 py-3 text-ink-900 outline-none transition focus:border-ink-400"
+                  className="field-control"
                 />
                 <input
                   value={createForm.author}
@@ -170,7 +170,7 @@ export function LibraryPage() {
                     setCreateForm((current) => ({ ...current, author: event.target.value }))
                   }
                   placeholder="Author"
-                  className="w-full rounded-[18px] border border-black/10 bg-white px-4 py-3 text-ink-900 outline-none transition focus:border-ink-400"
+                  className="field-control"
                 />
                 <textarea
                   value={createForm.description}
@@ -178,34 +178,34 @@ export function LibraryPage() {
                     setCreateForm((current) => ({ ...current, description: event.target.value }))
                   }
                   placeholder="Description"
-                  rows={4}
-                  className="w-full rounded-[18px] border border-black/10 bg-white px-4 py-3 text-ink-900 outline-none transition focus:border-ink-400"
+                  rows={3}
+                  className="field-control min-h-[7.25rem] resize-y"
                 />
                 <button
                   type="button"
                   onClick={handleCreateNovel}
                   disabled={isCreating}
-                  className="rounded-full bg-ink-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-ink-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="btn-primary"
                 >
                   {isCreating ? "Creating..." : "Create book"}
                 </button>
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-black/5 bg-white/85 p-6 shadow-panel">
-              <h2 className="font-display text-3xl text-ink-900">Import from file</h2>
-              <p className="mt-3 text-sm leading-6 text-ink-600">
+            <section className="surface-card">
+              <h2 className="font-display text-[2.1rem] leading-none text-ink-900">Import from file</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-600">
                 Upload a local scraper JSON file privately, or import from a server path if the
                 backend already has the file.
               </p>
-              <div className="mt-5 space-y-3">
-                <div className="rounded-[18px] border border-dashed border-black/10 bg-white/70 p-4">
+              <div className="mt-4 space-y-3">
+                <div className="rounded-[1rem] border border-dashed border-black/10 bg-white/70 p-4">
                   <div className="flex flex-wrap items-center gap-3">
                     <button
                       type="button"
                       onClick={() => uploadInputRef.current?.click()}
                       disabled={isImportingUpload}
-                      className="rounded-full bg-ink-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-ink-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="btn-primary"
                     >
                       {isImportingUpload ? "Uploading..." : "Choose JSON file"}
                     </button>
@@ -231,13 +231,13 @@ export function LibraryPage() {
                   value={importFilePath}
                   onChange={(event) => setImportFilePath(event.target.value)}
                   placeholder="data/raw/sample_novel.json"
-                  className="w-full rounded-[18px] border border-black/10 bg-white px-4 py-3 text-ink-900 outline-none transition focus:border-ink-400"
+                  className="field-control"
                 />
                 <button
                   type="button"
                   onClick={handleImportNovel}
                   disabled={isImportingPath}
-                  className="rounded-full border border-black/10 px-5 py-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="btn-secondary"
                 >
                   {isImportingPath ? "Importing..." : "Import from path"}
                 </button>
@@ -245,12 +245,12 @@ export function LibraryPage() {
             </section>
           </div>
 
-          {adminError ? <p className="mt-4 text-sm text-red-700">{adminError}</p> : null}
+          {adminError ? <p className="mt-3 text-sm text-red-700">{adminError}</p> : null}
         </PageSection>
       ) : null}
 
       <PageSection eyebrow="Library">
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="library-grid">
           {novels.map((novel) => (
             <NovelCard
               key={novel.id}

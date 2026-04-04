@@ -11,9 +11,7 @@ function getThemeTokens(theme: "day" | "night" | "sepia") {
       bg: "#171412",
       fg: "#f0e8d8",
       muted: "#b7ab98",
-      panel: "bg-[#221d19]/90 border-white/10",
       topBar: "border-white/10 bg-[#1f1a16]/92 text-[#f0e8d8]",
-      titleAccent: "#d8c8a8",
     };
   }
 
@@ -22,9 +20,7 @@ function getThemeTokens(theme: "day" | "night" | "sepia") {
       bg: "#f5ede0",
       fg: "#43382d",
       muted: "#7e6e5d",
-      panel: "bg-white/60 border-black/10",
       topBar: "border-[#decfb8] bg-[#f4ead8]/95 text-[#43382d]",
-      titleAccent: "#b79c6c",
     };
   }
 
@@ -32,9 +28,7 @@ function getThemeTokens(theme: "day" | "night" | "sepia") {
     bg: "#f7f7f7",
     fg: "#221d19",
     muted: "#6f6250",
-    panel: "bg-white/72 border-black/10",
     topBar: "border-[#ddd4c5] bg-[#f4efe4]/96 text-[#221d19]",
-    titleAccent: "#b79c6c",
   };
 }
 
@@ -136,11 +130,11 @@ export function ReaderPage() {
   }, [chapterId]);
 
   if (isLoading) {
-    return <div className="px-6 py-10 text-sm text-ink-500">Loading chapter...</div>;
+    return <div className="px-4 py-6 text-sm text-ink-500">Loading chapter...</div>;
   }
 
   if (error || !chapter || !detail || !settings) {
-    return <div className="px-6 py-10 text-sm text-red-700">Unable to load this chapter.</div>;
+    return <div className="px-4 py-6 text-sm text-red-700">Unable to load this chapter.</div>;
   }
 
   const themeTokens = getThemeTokens(settings.theme);
@@ -152,25 +146,20 @@ export function ReaderPage() {
         {
           "--reader-bg": themeTokens.bg,
           "--reader-fg": themeTokens.fg,
-          "--reader-content-width": `${defaultReaderSettings.contentWidth}px`,
-          "--reader-font-size": `${settings.fontSize}px`,
-          "--reader-line-height": String(settings.lineHeight),
-          "--reader-font-family": getFontFamily(defaultReaderSettings.fontFamily),
-          "--reader-paragraph-spacing": `${settings.paragraphSpacing}rem`,
         } as CSSProperties
       }
     >
-      <div className="mx-auto min-h-screen max-w-7xl px-3 py-3 sm:px-4 lg:px-6">
+      <div className="mx-auto min-h-screen max-w-[76rem] px-3 py-3 sm:px-4 lg:px-6">
         <section className="min-w-0">
-          <div className="top-2 z-30 space-y-3">
+          <div className="top-2 z-30 space-y-2.5">
             <header
-              className={`reader-header rounded-[28px] border px-4 py-3 shadow-[0_14px_28px_rgba(77,60,33,0.08)] backdrop-blur ${themeTokens.topBar}`}
+              className={`reader-header rounded-[1.25rem] border px-3 py-2.5 shadow-[0_10px_22px_rgba(77,60,33,0.08)] backdrop-blur ${themeTokens.topBar}`}
             >
-              <div className="grid items-center gap-3 md:grid-cols-[minmax(0,1fr)_minmax(280px,auto)_minmax(0,1fr)]">
+              <div className="grid items-center gap-2.5 md:grid-cols-[minmax(0,1fr)_minmax(240px,auto)_minmax(0,1fr)]">
                 <div className="flex items-center justify-start">
                   <Link
                     to={`/novels/${novelId}`}
-                    className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm transition hover:bg-black/5"
+                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition hover:bg-black/5"
                     style={{ color: themeTokens.fg }}
                   >
                     <span aria-hidden="true">&larr;</span>
@@ -179,7 +168,10 @@ export function ReaderPage() {
                 </div>
 
                 <div className="min-w-0 text-center">
-                  <h1 className="truncate font-display text-xl leading-tight sm:text-2xl" style={{ color: themeTokens.fg }}>
+                  <h1
+                    className="truncate font-display text-[1.55rem] leading-tight sm:text-[1.8rem]"
+                    style={{ color: themeTokens.fg }}
+                  >
                     {detail.novel.title}
                   </h1>
                 </div>
@@ -190,10 +182,13 @@ export function ReaderPage() {
                     <select
                       value={chapter.id}
                       onChange={(event) => navigate(`/read/${novelId}/${event.target.value}`)}
-                      className="w-full min-w-[160px] rounded-2xl border border-current/10 bg-white/60 px-4 py-2.5 text-sm outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-300/40"
+                      className="w-full min-w-[150px] rounded-[0.95rem] border border-current/10 bg-white/60 px-3 py-2 text-sm outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-300/40"
                       style={{
                         color: themeTokens.fg,
-                        backgroundColor: settings.theme === "night" ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.7)",
+                        backgroundColor:
+                          settings.theme === "night"
+                            ? "rgba(255,255,255,0.06)"
+                            : "rgba(255,255,255,0.7)",
                       }}
                     >
                       {detail.chapters.map((item) => (
@@ -206,7 +201,7 @@ export function ReaderPage() {
                   <button
                     type="button"
                     onClick={() => setShowMobileControls(true)}
-                    className="rounded-full border px-3 py-2 text-sm lg:hidden"
+                    className="rounded-full border px-3 py-1.5 text-sm lg:hidden"
                     style={{
                       color: themeTokens.fg,
                       borderColor: "rgba(128,128,128,0.2)",
@@ -219,21 +214,30 @@ export function ReaderPage() {
             </header>
 
             <div className="hidden lg:block">
-              <ReaderControls
-                settings={settings}
-                setSettings={setSettings}
-                layout="toolbar"
-              />
+              <ReaderControls settings={settings} setSettings={setSettings} layout="toolbar" />
             </div>
           </div>
 
-          <article className="mx-auto px-1 py-8 sm:px-3 md:px-8 md:py-12">
-            <div className="reader-prose mx-auto">
-              <header className="mb-10 space-y-3">
-                <p className="text-sm uppercase tracking-[0.2em]" style={{ color: themeTokens.muted }}>
+          <article className="mx-auto px-1 py-6 sm:px-3 md:px-6 md:py-8">
+            <div
+              className="reader-prose mx-auto"
+              style={
+                {
+                  "--reader-content-width": `${defaultReaderSettings.contentWidth}px`,
+                  "--reader-font-size": `${settings.fontSize}px`,
+                  "--reader-line-height": String(settings.lineHeight),
+                  "--reader-font-family": getFontFamily(defaultReaderSettings.fontFamily),
+                  "--reader-paragraph-spacing": `${settings.paragraphSpacing}rem`,
+                } as CSSProperties
+              }
+            >
+              <header className="mb-8 space-y-2">
+                <p className="text-xs uppercase tracking-[0.22em]" style={{ color: themeTokens.muted }}>
                   {detail.novel.author}
                 </p>
-                <h2 className="font-display text-4xl leading-tight sm:text-5xl">{chapter.title}</h2>
+                <h2 className="font-display text-[2.4rem] leading-[0.98] sm:text-[3rem]">
+                  {chapter.title}
+                </h2>
               </header>
 
               <div>
@@ -242,7 +246,7 @@ export function ReaderPage() {
                 ))}
               </div>
 
-              <footer className="mt-14 flex flex-col gap-3 border-t border-current/10 pt-8 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <footer className="mt-12 flex flex-col gap-3 border-t border-current/10 pt-6 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                 {previousChapter ? (
                   <Link className="reader-mobile-link" to={`/read/${novelId}/${previousChapter.id}`}>
                     Previous chapter
@@ -267,7 +271,7 @@ export function ReaderPage() {
       {showMobileControls ? (
         <div className="fixed inset-0 z-40 bg-black/35 lg:hidden" onClick={() => setShowMobileControls(false)}>
           <div
-            className="absolute inset-x-4 bottom-4 max-h-[68vh] overflow-y-auto rounded-[28px] border border-[#decfb8] bg-[#f4ead8] p-3.5 shadow-2xl"
+            className="absolute inset-x-4 bottom-4 max-h-[64vh] overflow-y-auto rounded-[1.25rem] border border-[#decfb8] bg-[#f4ead8] p-3 shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mb-3 flex items-center justify-between gap-3">
@@ -278,7 +282,7 @@ export function ReaderPage() {
               <button
                 type="button"
                 onClick={() => setShowMobileControls(false)}
-                className="rounded-full border border-[#d9c5a2] px-3 py-2 text-sm text-[#43382d]"
+                className="rounded-full border border-[#d9c5a2] px-3 py-1.5 text-sm text-[#43382d]"
               >
                 Close
               </button>
@@ -295,7 +299,7 @@ export function ReaderPage() {
       {showBackToTop ? (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-4 right-4 z-50 rounded-full border px-4 py-3 text-sm shadow-lg backdrop-blur transition hover:scale-105"
+          className="fixed bottom-4 right-4 z-50 rounded-full border px-4 py-2.5 text-sm shadow-lg backdrop-blur transition hover:scale-105"
           style={{
             backgroundColor: themeTokens.bg,
             color: themeTokens.fg,
@@ -303,7 +307,7 @@ export function ReaderPage() {
           }}
           aria-label="Back to top"
         >
-          ↑
+          Top
         </button>
       ) : null}
     </div>

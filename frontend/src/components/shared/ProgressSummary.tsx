@@ -16,7 +16,7 @@ export function ProgressSummary({ progress, className }: ProgressSummaryProps) {
   }
 
   return (
-    <div className={className ?? "space-y-1 text-sm leading-6 text-ink-600"}>
+    <div className={className ?? "space-y-1 text-sm leading-5 text-ink-600"}>
       <p>Current chapter: {progress.chapterIndex}</p>
       <p>Saved scroll: {Math.round(progress.scrollTop)} px</p>
     </div>
